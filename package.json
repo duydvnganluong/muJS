@@ -1,0 +1,25 @@
+{
+	"name": "@digicreon/mujs",
+	"version": "1.0.0",
+	"description": "Lightweight AJAX navigation library",
+	"main": "dist/mu.min.js",
+	"files": [
+		"dist/mu.min.js"
+	],
+	"keywords": [
+		"ajax",
+		"navigation",
+		"pjax",
+		"turbo",
+		"htmx",
+		"spa",
+		"lightweight"
+	],
+	"author": "Digicreon",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Digicreon/muJS"
+	},
+	"homepage": "https://mujs.org"
+}
