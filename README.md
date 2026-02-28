@@ -46,9 +46,14 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 
 ### Via `<script>` tag (recommended)
 
+Place the scripts at the end of `<body>`, after all your HTML content. This ensures the DOM is ready when µJS initializes.
+
 ```html
-<script src="/path/to/mu.min.js"></script>
-<script>mu.init();</script>
+<body>
+    <!-- your content -->
+    <script src="/path/to/mu.min.js"></script>
+    <script>mu.init();</script>
+</body>
 ```
 
 ### Via CDN
@@ -59,6 +64,8 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 
 <!-- jsDelivr -->
 <script src="https://cdn.jsdelivr.net/npm/@digicreon/mujs/dist/mu.min.js"></script>
+
+<script>mu.init();</script>
 ```
 
 ### Via npm
@@ -77,8 +84,6 @@ After calling `mu.init()`, all internal links (URLs starting with `/`) are autom
 <html>
 <head>
     <title>My site</title>
-    <script src="/path/to/mu.min.js"></script>
-    <script>mu.init();</script>
 </head>
 <body>
     <!-- These links are automatically handled by µJS -->
@@ -97,6 +102,9 @@ After calling `mu.init()`, all internal links (URLs starting with `/`) are autom
 
     <!-- This link is NOT handled (explicitly disabled) -->
     <a href="/file.pdf" mu-disabled>Download PDF</a>
+
+    <script src="/path/to/mu.min.js"></script>
+    <script>mu.init();</script>
 </body>
 </html>
 ```

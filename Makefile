@@ -25,7 +25,7 @@ dist: $(DIST)
 
 $(DIST): $(SRC)
 	@mkdir -p dist
-	$(TERSER) $(SRC) -o $(DIST) -c -m
+	$(TERSER) $(SRC) -o $(DIST) -c -m --comments false -f 'preamble="/* µJS (muJS) - mujs.org */"'
 	@echo "Built $(DIST)"
 	@make -s size
 
