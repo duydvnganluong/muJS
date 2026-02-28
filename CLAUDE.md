@@ -7,7 +7,7 @@
 - **Official name**: µJS (Unicode) / muJS (ASCII)
 - **Website**: https://mujs.org (domain owned)
 - **Related project**: µCSS (mucss.org, CSS framework derived from PicoCSS)
-- **npm package**: `mujs` (name is available and reserved)
+- **npm package**: `@digicreon/mujs`
 - **License**: MIT
 - **Author**: Digicreon (https://github.com/Digicreon)
 - **Predecessor**: Vik (https://github.com/Digicreon/Vik) — this is a full rewrite, not a refactor
@@ -46,7 +46,7 @@ These conventions come from the original Vik codebase and MUST be followed stric
 ## Architecture decisions
 
 ### Event delegation
-µJS uses a single `click` listener and a single `submit` listener on `document`. No per-element binding, no re-binding after page load. This replaces Vik's approach of iterating over all links/forms and adding `onclick`/`onsubmit` attributes, then re-running `init()` after each page load.
+µJS uses a single `click` listener and a single `submit` listener on `document` for click/submit triggers. No per-element binding for those, no re-binding after page load. For other triggers (`change`, `blur`, `focus`, `load`), per-element listeners are attached by `_initTriggers()` after each render. This replaces Vik's approach of iterating over all links/forms and adding `onclick`/`onsubmit` attributes, then re-running `init()` after each page load.
 
 ### Attributes: mu-* with data-mu-* fallback
 All HTML attributes use the `mu-` prefix (e.g. `mu-mode`, `mu-target`). The `data-mu-` variant is also supported for W3C validation. The helper function `_attr(el, name)` checks both.
@@ -118,7 +118,8 @@ DOM morphing (preserving focus, scroll, video state during replace/update) is:
 - HTML5 validation via `reportValidity()` before any fetch
 - Optional custom validation via `mu-validate="functionName"`
 - GET forms: data serialized as query string, behaves like a link
-- POST forms: data sent as `FormData`, ghost mode enabled by default
+- Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `FormData`, ghost mode enabled by default
+- `mu-method` attribute overrides the form's `method` attribute (supports `put`, `patch`, `delete`)
 - Quit-page confirmation via `mu-confirm-quit` attribute on `<form>` (uses `input` event delegation)
 
 ## Ghost mode
@@ -128,6 +129,17 @@ Ghost = no history entry + no scroll to top.
 - POST forms are ghost by default
 - Patch mode is ghost by default (`mu-patch-ghost="true"`)
 - `ghostRedirect`: controls history behavior for HTTP redirects (renamed from Vik's `ghostRedirection`)
+
+## HTTP methods (mu-method)
+
+- `mu-method` attribute sets the HTTP method: `get`, `post`, `put`, `patch`, `delete`, `sse`
+- If absent on a link/button: defaults to `get`
+- If absent on a form: uses the form's `method` attribute (default `get`)
+- `mu-post` is deprecated, mapped to `mu-method="post"` for backward compatibility
+- Non-GET methods send `X-Mu-Method` header
+- For forms, non-GET methods send FormData as body (same as POST)
+- For non-form elements (buttons, divs), non-GET methods send an empty body
+- `sse` is a special value that opens an EventSource instead of using fetch
 
 ## Prefetch
 
@@ -142,6 +154,7 @@ Ghost = no history entry + no scroll to top.
 
 - `X-Requested-With: mujs` — identifies AJAX requests (server can return different content)
 - `X-Mu-Mode: <mode>` — current injection mode
+- `X-Mu-Method: <METHOD>` — HTTP method, sent for non-GET requests (POST, PUT, PATCH, DELETE)
 - `X-Mu-Prefetch: 1` — sent on prefetch requests (server can return lighter content)
 
 ## Progress bar
@@ -163,41 +176,87 @@ Ghost = no history entry + no scroll to top.
 
 Implemented. Before each navigation, `_saveScroll()` stores `scrollX`/`scrollY` in the current `history.state` via `replaceState`. On popstate (back/forward), the stored position is restored after rendering instead of scrolling to top.
 
+## Triggers (mu-trigger)
+
+Implemented in v1.2. Allows any element with `mu-url` to trigger a fetch on events
+beyond click/submit. Supports debounce and polling.
+
+### New attributes
+
+| Attribute | Values | Description |
+|---|---|---|
+| `mu-method` | `get`, `post`, `put`, `patch`, `delete`, `sse` | HTTP method (replaces `mu-post`) |
+| `mu-trigger` | `click`, `submit`, `change`, `blur`, `focus`, `load` | Event trigger |
+| `mu-repeat` | number (ms) | Polling interval |
+| `mu-debounce` | number (ms) | Debounce delay |
+
+### Default triggers (when mu-trigger is absent)
+
+| Element | Default trigger |
+|---|---|
+| `<a>` | `click` |
+| `<form>` | `submit` |
+| `<input>`, `<textarea>`, `<select>` | `change` |
+| Any other element | `click` |
+
+### Trigger mapping to browser events
+
+| Trigger | Browser event(s) |
+|---|---|
+| `click` | `click` (event delegation) |
+| `submit` | `submit` (event delegation) |
+| `change` | `input` |
+| `blur` | `change` + `blur` (deduplicated via timestamp) |
+| `focus` | `focus` |
+| `load` | fires immediately when rendered |
+
+### Key functions
+
+- `_getTrigger(el)` — returns effective trigger for an element
+- `_debounce(fn, delay)` — classic debounce utility
+- `_triggerAction(el)` — common action handler for non-delegation triggers
+- `_initTriggers(container)` — scans and binds per-element listeners
+- `_cleanupTriggers(container)` — clears intervals and SSE before DOM replacement
+
+### Design decisions
+
+- `click` and `submit` remain handled by event delegation (no per-element binding)
+- Other triggers (`change`, `blur`, `focus`, `load`) use per-element listeners
+  attached by `_initTriggers()`, called after each render
+- Elements marked with `_mu_bound = true` to prevent duplicate binding
+- Polling via `setInterval`, stored as `el._mu_interval`, cleaned up by `_cleanupTriggers`
+- Non-click/submit triggers default to ghost mode (no history entry)
+- `mu-post` is deprecated but still supported (mapped to `mu-method="post"`)
+
+## Server-Sent Events (SSE)
+
+Implemented in v1.2 via `mu-method="sse"`. Opens an `EventSource` connection.
+Incoming messages are parsed as HTML and rendered via `_renderPatch` or `_renderPage`.
+
+### Key function
+
+- `_openSSE(url, el, cfg)` — creates EventSource, handles messages and errors
+
+### Design decisions
+
+- Each element with `mu-method="sse"` gets its own EventSource connection
+- Connection stored as `el._mu_sse`, closed by `_cleanupTriggers`
+- EventSource does not support custom headers — documented limitation
+- Browser limit: ~6 SSE connections per domain in HTTP/1.1
+- WebSocket support not implemented (SSE covers most real-time use cases)
+
 ## TODO / future improvements
 
 - [ ] Publish to npm
 - [ ] Create mujs.org website
 - [ ] Document how to install and use idiomorph with µJS (CDN, npm, local file) on mujs.org
-- [ ] Consider: `mu-trigger` attribute (see details below)
-- [ ] Consider: SSE/WebSocket integration for server-pushed patches
+- [x] ~~`mu-trigger` attribute~~ — implemented in v1.2
+- [x] ~~SSE integration for server-pushed patches~~ — implemented in v1.2
 - [ ] Consider: `mu-indicator` attribute (see details below)
+- [ ] Consider: WebSocket integration (complement to SSE)
+- [ ] Consider: `revealed` trigger via IntersectionObserver (infinite scroll)
 - [ ] Write unit tests
 - [ ] Write integration tests with a simple PHP backend
-
-### mu-trigger (not yet implemented)
-
-HTMX-style attribute to trigger a fetch on any DOM event, not just click/submit.
-Use cases: live search on keyup, infinite scroll, polling.
-
-Possible syntax:
-```html
-<!-- Search on keyup with debounce -->
-<input type="text" name="q"
-       mu-url="/search" mu-trigger="keyup delay:500ms"
-       mu-target="#results" mu-source="#results" mu-mode="update">
-
-<!-- Load when element becomes visible (infinite scroll) -->
-<div mu-url="/page/2" mu-trigger="revealed"
-     mu-target="#list" mu-mode="append">
-
-<!-- Poll every 10 seconds -->
-<div mu-url="/notifications" mu-trigger="every 10s"
-     mu-target="#notifs" mu-mode="update">
-```
-
-Implementation would require: event parsing, debounce/throttle, IntersectionObserver
-for `revealed`, setInterval for `every`. Significant code addition. Consider carefully
-whether this is needed or if it pushes µJS too close to HTMX's scope.
 
 ### mu-indicator (not yet implemented)
 
@@ -216,12 +275,4 @@ Possible syntax:
 Behavior: µJS shows the indicator (display="") on fetch start, hides it (display="none")
 after render. Simple to implement but low priority — the global progress bar covers 90%
 of use cases.
-
-### SSE/WebSocket integration (not yet implemented)
-
-Server-pushed patches via SSE or WebSocket. The server could push `<mu-stream>` or
-patch fragments over a persistent connection. µJS would parse and apply them like
-regular patch responses. This is a natural extension of patch mode for real-time
-features (chat, notifications, live dashboards). To be discussed and designed
-separately.
 

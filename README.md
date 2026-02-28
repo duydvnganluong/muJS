@@ -9,9 +9,12 @@ No build step required. No dependencies. No framework. Just a single `<script>` 
 Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turbo.hotwired.dev/) and [HTMX](https://htmx.org/), µJS aims to be simpler and lighter while covering the most common use cases.
 
 - 🚀 **Fast** — Prefetch on hover, no full page reload, progress bar
-- 🪶 **Lightweight** — Single file, ~3 KB gzipped, zero dependencies
+- 🪶 **Lightweight** — Single file, ~10 KB gzipped, zero dependencies
 - 🔌 **Drop-in** — Works with any backend (PHP, Python, Ruby, Go…), no server-side changes needed
 - 🧩 **Patch mode** — Update multiple page fragments in a single request
+- 🎯 **Triggers** — Any element, any event: live search, polling, focus actions
+- 🔄 **HTTP verbs** — GET, POST, PUT, PATCH, DELETE on links, buttons, and forms
+- 📡 **SSE** — Real-time updates via Server-Sent Events
 - ✨ **Modern** — View Transitions, DOM morphing (via idiomorph), `fetch` API, event delegation
 
 
@@ -22,6 +25,9 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 - [Modes](#modes)
 - [Patch mode](#patch-mode)
 - [Forms](#forms)
+- [HTTP methods](#http-methods)
+- [Triggers](#triggers)
+- [Server-Sent Events (SSE)](#server-sent-events-sse)
 - [Ghost mode](#ghost-mode)
 - [Scroll restoration](#scroll-restoration)
 - [Prefetch](#prefetch)
@@ -49,16 +55,16 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 
 ```html
 <!-- unpkg -->
-<script src="https://unpkg.com/mujs/dist/mu.min.js"></script>
+<script src="https://unpkg.com/@digicreon/mujs/dist/mu.min.js"></script>
 
 <!-- jsDelivr -->
-<script src="https://cdn.jsdelivr.net/npm/mujs/dist/mu.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@digicreon/mujs/dist/mu.min.js"></script>
 ```
 
 ### Via npm
 
 ```bash
-npm install mujs
+npm install @digicreon/mujs
 ```
 
 
@@ -204,6 +210,23 @@ Data is sent as `FormData`. Ghost mode is enabled by default (POST responses sho
 </form>
 ```
 
+### PUT / PATCH / DELETE forms
+
+Use `mu-method` to override the HTTP method. The form data is sent as `FormData`, like POST.
+
+```html
+<!-- PUT form -->
+<form action="/api/user/1" mu-method="put">
+    <input type="text" name="name">
+    <button type="submit">Update</button>
+</form>
+
+<!-- DELETE form (no data needed) -->
+<form action="/api/user/1" mu-method="delete">
+    <button type="submit">Delete</button>
+</form>
+```
+
 ### POST form with patch response
 
 ```html
@@ -249,6 +272,139 @@ Add `mu-confirm-quit` to a form. If any input is modified, the user is prompted 
     <button type="submit">Save</button>
 </form>
 ```
+
+
+## HTTP methods
+
+By default, links use GET and forms use their `method` attribute. The `mu-method` attribute overrides the HTTP method for any element.
+
+Supported values: `get`, `post`, `put`, `patch`, `delete`, `sse`.
+
+```html
+<!-- DELETE button -->
+<button mu-url="/api/item/42" mu-method="delete" mu-mode="remove" mu-target="#item-42">
+    Delete
+</button>
+
+<!-- PUT link -->
+<a href="/api/publish/5" mu-method="put" mu-mode="none">Publish</a>
+```
+
+Non-GET requests send an `X-Mu-Method` header with the HTTP method, allowing the server to distinguish between standard and µJS-initiated requests.
+
+> **Note:** `mu-post` is deprecated. Use `mu-method="post"` instead.
+
+
+## Triggers
+
+µJS supports custom event triggers via the `mu-trigger` attribute. This allows any element with a `mu-url` to initiate a fetch on events other than click or submit.
+
+### Default triggers
+
+When `mu-trigger` is absent, the trigger depends on the element type:
+
+| Element | Default trigger |
+|---|---|
+| `<a>` | `click` |
+| `<form>` | `submit` |
+| `<input>`, `<textarea>`, `<select>` | `change` |
+| Any other element | `click` |
+
+### Available triggers
+
+| Trigger | Browser event(s) | Typical elements |
+|---|---|---|
+| `click` | `click` | Any element (default for `<a>`, `<button>`, `<div>`...) |
+| `submit` | `submit` | `<form>` |
+| `change` | `input` | `<input>`, `<textarea>`, `<select>` |
+| `blur` | `change` + `blur` (deduplicated) | `<input>`, `<textarea>`, `<select>` |
+| `focus` | `focus` | `<input>`, `<textarea>`, `<select>` |
+| `load` | *(fires immediately when rendered)* | Any element |
+
+### Examples
+
+**Live search with debounce:**
+
+```html
+<input type="text" name="q"
+       mu-trigger="change" mu-debounce="500"
+       mu-url="/search" mu-target="#results" mu-source="#results"
+       mu-mode="update">
+```
+
+**Action on focus (e.g. load suggestions):**
+
+```html
+<input type="text" mu-trigger="focus"
+       mu-url="/suggestions" mu-target="#suggestions" mu-mode="update">
+```
+
+**Action on blur (save on field exit):**
+
+```html
+<input type="text" name="title" mu-trigger="blur"
+       mu-url="/api/save" mu-method="put" mu-target="#status" mu-mode="update">
+```
+
+**Load content immediately:**
+
+```html
+<div mu-trigger="load"
+     mu-url="/sidebar" mu-target="#sidebar" mu-mode="update">
+</div>
+```
+
+### Polling
+
+Combine `mu-trigger="load"` with `mu-repeat` to poll a URL at regular intervals:
+
+```html
+<div mu-trigger="load" mu-repeat="5000"
+     mu-url="/notifications" mu-target="#notifs" mu-mode="update">
+</div>
+```
+
+The first fetch fires immediately, then every 5 seconds. Polling intervals are automatically cleaned up when the element is removed from the DOM.
+
+### Debounce
+
+Use `mu-debounce` to delay the fetch until the user stops interacting:
+
+```html
+<input type="text" name="q" mu-debounce="300"
+       mu-url="/search" mu-target="#results" mu-mode="update">
+```
+
+> **Note:** Triggers other than `click` and `submit` default to ghost mode (no browser history entry).
+
+
+## Server-Sent Events (SSE)
+
+µJS supports real-time updates via Server-Sent Events. Set `mu-method="sse"` to open an `EventSource` connection instead of a one-shot fetch.
+
+```html
+<div mu-trigger="load" mu-url="/chat/stream"
+     mu-mode="patch" mu-method="sse">
+</div>
+```
+
+Each incoming SSE message is treated as HTML and rendered according to the element's `mu-mode`. In patch mode, the server sends HTML fragments with `mu-patch-target` attributes, just like a regular patch response.
+
+### Server-side example
+
+```
+event: message
+data: <div mu-patch-target="#messages" mu-patch-mode="append"><p>New message!</p></div>
+
+event: message
+data: <span mu-patch-target="#online-count">42</span>
+```
+
+### Limitations
+
+- **No custom headers**: `EventSource` does not support custom HTTP headers. Use query parameters for authentication (e.g. `mu-url="/stream?token=abc"`).
+- **Connection limit**: Browsers allow ~6 SSE connections per domain in HTTP/1.1. Use HTTP/2 to avoid this limit.
+- **Automatic cleanup**: SSE connections are closed when the element is removed from the DOM (e.g. when the page changes).
 
 
 ## Ghost mode
@@ -424,7 +580,11 @@ All attributes support both `mu-*` and `data-mu-*` syntax.
 | `mu-morph` | Disable morphing on this element (`false`). |
 | `mu-transition` | Disable view transitions on this element (`false`). |
 | `mu-prefetch` | Disable prefetch on hover for this link (`false`). |
-| `mu-post` | Force POST method on a link. |
+| `mu-method` | HTTP method: `get`, `post`, `put`, `patch`, `delete`, or `sse`. |
+| `mu-trigger` | Event trigger: `click`, `submit`, `change`, `blur`, `focus`, `load`. |
+| `mu-debounce` | Debounce delay in milliseconds (e.g. `"500"`). |
+| `mu-repeat` | Polling interval in milliseconds (e.g. `"5000"`). |
+| `mu-post` | *(Deprecated)* Use `mu-method="post"` instead. |
 | `mu-confirm` | Show a confirmation dialog before loading. |
 | `mu-confirm-quit` | *(Forms)* Prompt before leaving if the form has been modified. |
 | `mu-validate` | *(Forms)* Name of a JS validation function. Must return `true`/`false`. |
