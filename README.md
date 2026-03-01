@@ -28,7 +28,7 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 - [HTTP methods](#http-methods)
 - [Triggers](#triggers)
 - [Server-Sent Events (SSE)](#server-sent-events-sse)
-- [Ghost mode](#ghost-mode)
+- [History & Scroll](#history--scroll)
 - [Scroll restoration](#scroll-restoration)
 - [Prefetch](#prefetch)
 - [DOM morphing](#dom-morphing)
@@ -188,7 +188,7 @@ The `mu-patch-mode` attribute accepts the same values as `mu-mode` (except `patc
 By default, patch mode does not modify browser history. To add the URL to history:
 
 ```html
-<a href="/products?cat=3" mu-mode="patch" mu-patch-ghost="false">Filter</a>
+<a href="/products?cat=3" mu-mode="patch" mu-patch-history="true">Filter</a>
 ```
 
 
@@ -209,7 +209,7 @@ Data is serialized as a query string. Behaves like a link.
 
 ### POST forms
 
-Data is sent as `FormData`. Ghost mode is enabled by default (POST responses should not be replayed via the browser back button).
+Data is sent as `FormData`. History is disabled by default (POST responses should not be replayed via the browser back button).
 
 ```html
 <form action="/comment/create" method="post">
@@ -300,8 +300,6 @@ Supported values: `get`, `post`, `put`, `patch`, `delete`, `sse`.
 
 Non-GET requests send an `X-Mu-Method` header with the HTTP method, allowing the server to distinguish between standard and µJS-initiated requests.
 
-> **Note:** `mu-post` is deprecated. Use `mu-method="post"` instead.
-
 
 ## Triggers
 
@@ -383,7 +381,7 @@ Use `mu-debounce` to delay the fetch until the user stops interacting:
        mu-url="/search" mu-target="#results" mu-mode="update">
 ```
 
-> **Note:** Triggers other than `click` and `submit` default to ghost mode (no browser history entry).
+> **Note:** Triggers other than `click` and `submit` default to no browser history entry and no scroll (`mu-history="false"`, `mu-scroll="false"`).
 
 
 ## Server-Sent Events (SSE)
@@ -415,19 +413,34 @@ data: <span mu-patch-target="#online-count">42</span>
 - **Automatic cleanup**: SSE connections are closed when the element is removed from the DOM (e.g. when the page changes).
 
 
-## Ghost mode
+## History & Scroll
 
-Ghost mode prevents a navigation from being added to browser history and disables automatic scroll-to-top.
+`mu-history` controls whether the URL is added to browser history. `mu-scroll` controls whether the page scrolls to top after rendering. Both attributes are independent.
 
 ```html
-<!-- Ghost mode on a single link -->
-<a href="/panel" mu-ghost>Open panel</a>
+<!-- Skip history on a link -->
+<a href="/panel" mu-history="false">Open panel</a>
 
-<!-- Ghost mode globally -->
-<script>mu.init({ ghost: true });</script>
+<!-- Skip history globally -->
+<script>mu.init({ history: false });</script>
+
+<!-- Scroll to top without adding history -->
+<a href="/page" mu-history="false" mu-scroll="true">Link</a>
 ```
 
-In patch mode, ghost is enabled by default. Use `mu-patch-ghost="false"` to add the URL to history.
+Defaults for `mu-history` and `mu-scroll` depend on the mode and context:
+
+| Mode | Context | `mu-history` | `mu-scroll` |
+|---|---|---|---|
+| `replace`, `update` | Links (GET) | `true` | `true` |
+| `replace`, `update` | Forms (GET) | `true` | `true` |
+| `replace`, `update` | Forms (POST/PUT/PATCH/DELETE) | `false` | `true` |
+| `replace`, `update` | Triggers (change, blur, focus, load) | `false` | `false` |
+| `replace`, `update` | SSE | `false` | `false` |
+| `append`, `prepend`, `before`, `after`, `remove`, `none` | Any | `false` | `false` |
+| `patch` | Any | `false` | `false` |
+
+Redirections always add the URL to browser history, regardless of the `mu-history` setting. In patch mode, use `mu-patch-history="true"` to add the URL to history.
 
 
 ## Scroll restoration
@@ -439,7 +452,7 @@ When the user navigates with the browser's back/forward buttons, µJS automatica
 
 When enabled (default), µJS fetches the target page when the user hovers over a link, before they click. This saves ~100-300ms of perceived loading time.
 
-The prefetch cache stores one entry per URL and is consumed on click.
+The prefetch cache stores one entry per URL and is consumed on click. Prefetch only applies to GET requests — elements with `mu-method="post"`, `put`, `patch`, `delete` or `sse` are never prefetched.
 
 ```html
 <!-- Disable prefetch on a specific link -->
@@ -582,9 +595,8 @@ All attributes support both `mu-*` and `data-mu-*` syntax.
 | `mu-url` | Override the URL to fetch (instead of `href` / `action`). |
 | `mu-prefix` | URL prefix for the fetch request. |
 | `mu-title` | Selector for the title node. Supports `selector/attribute` syntax. Empty string to disable. |
-| `mu-ghost` | Skip browser history and scroll-to-top. |
-| `mu-ghost-redirect` | Skip history for HTTP redirections. |
-| `mu-scroll-to-top` | Force (`true`) or prevent (`false`) scrolling to top. |
+| `mu-history` | Add URL to browser history (`true`/`false`). Default depends on mode and context. |
+| `mu-scroll` | Force (`true`) or prevent (`false`) scrolling to top. Default depends on mode and context. |
 | `mu-morph` | Disable morphing on this element (`false`). |
 | `mu-transition` | Disable view transitions on this element (`false`). |
 | `mu-prefetch` | Disable prefetch on hover for this link (`false`). |
@@ -592,13 +604,12 @@ All attributes support both `mu-*` and `data-mu-*` syntax.
 | `mu-trigger` | Event trigger: `click`, `submit`, `change`, `blur`, `focus`, `load`. |
 | `mu-debounce` | Debounce delay in milliseconds (e.g. `"500"`). |
 | `mu-repeat` | Polling interval in milliseconds (e.g. `"5000"`). |
-| `mu-post` | *(Deprecated)* Use `mu-method="post"` instead. |
 | `mu-confirm` | Show a confirmation dialog before loading. |
 | `mu-confirm-quit` | *(Forms)* Prompt before leaving if the form has been modified. |
 | `mu-validate` | *(Forms)* Name of a JS validation function. Must return `true`/`false`. |
 | `mu-patch-target` | *(Patch fragments)* CSS selector of the target node. |
 | `mu-patch-mode` | *(Patch fragments)* Injection mode for this fragment. |
-| `mu-patch-ghost` | Set to `false` to add the URL to browser history in patch mode. |
+| `mu-patch-history` | Set to `true` to add the URL to browser history in patch mode. Default: `false`. |
 
 
 ## Configuration reference
@@ -607,7 +618,7 @@ Pass an object to `mu.init()` to override defaults:
 
 ```javascript
 mu.init({
-    ghost: true,
+    history: false,
     processForms: false,
     morph: false,
     progress: true
@@ -618,13 +629,12 @@ mu.init({
 |---|---|---|---|
 | `processLinks` | bool | `true` | Intercept `<a>` tags. |
 | `processForms` | bool | `true` | Intercept `<form>` tags. |
-| `ghost` | bool | `false` | Ghost mode for all navigations. |
-| `ghostRedirect` | bool | `false` | Ghost mode for HTTP redirections. |
+| `history` | bool | `true` | Add URL to browser history. |
 | `mode` | string | `"replace"` | Default injection mode. |
 | `target` | string | `"body"` | Default target CSS selector. |
 | `source` | string | `"body"` | Default source CSS selector. |
 | `title` | string | `"title"` | Title selector (`"selector"` or `"selector/attribute"`). |
-| `scrollToTop` | bool\|null | `null` | Scroll behavior. `null` = auto (scroll unless ghost). |
+| `scroll` | bool\|null | `null` | Scroll behavior. `null` = auto (depends on mode and context). |
 | `urlPrefix` | string\|null | `null` | Prefix added to fetched URLs. |
 | `progress` | bool | `true` | Show progress bar during fetch. |
 | `prefetch` | bool | `true` | Prefetch pages on link hover. |
@@ -637,7 +647,7 @@ mu.init({
 
 ```javascript
 // Load a page programmatically
-mu.load("/page", { ghost: true, target: "#content" });
+mu.load("/page", { history: false, target: "#content" });
 
 // Get the last URL loaded by µJS
 mu.getLastUrl();    // "/about" or null

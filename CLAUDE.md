@@ -92,7 +92,7 @@ Key design decisions:
 - The node carrying `mu-patch-target` IS the element that gets injected (not its children).
 - `mu-patch-*` attributes are NOT removed after injection (useful for debugging).
 - Default patch mode is `replace`.
-- Patch does not modify browser history by default (`mu-patch-ghost` defaults to `true`). Use `mu-patch-ghost="false"` to enable history.
+- Patch does not modify browser history by default (`mu-patch-history` defaults to `false`). Use `mu-patch-history="true"` to enable history.
 - Patch does not scroll to top.
 - Page title, CSS, scripts can be updated via patch by targeting `title`, `head`, etc.
 
@@ -118,24 +118,29 @@ DOM morphing (preserving focus, scroll, video state during replace/update) is:
 - HTML5 validation via `reportValidity()` before any fetch
 - Optional custom validation via `mu-validate="functionName"`
 - GET forms: data serialized as query string, behaves like a link
-- Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `FormData`, ghost mode enabled by default
+- Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `FormData`, history disabled by default
 - `mu-method` attribute overrides the form's `method` attribute (supports `put`, `patch`, `delete`)
 - Quit-page confirmation via `mu-confirm-quit` attribute on `<form>` (uses `input` event delegation)
 
-## Ghost mode
+## History & Scroll
 
-Ghost = no history entry + no scroll to top.
-- `mu-ghost` on links/forms, or `ghost: true` in config
-- POST forms are ghost by default
-- Patch mode is ghost by default (`mu-patch-ghost="true"`)
-- `ghostRedirect`: controls history behavior for HTTP redirects (renamed from Vik's `ghostRedirection`)
+`mu-history` controls whether the URL is added to browser history.
+`mu-scroll` controls whether the page scrolls to top (independent from `mu-history`).
+
+Defaults depend on mode and context:
+- Modes `replace`/`update` + GET link/form: `history=true`, `scroll=true`
+- Modes `replace`/`update` + POST/PUT/PATCH/DELETE form: `history=false`, `scroll=true`
+- Modes `replace`/`update` + triggers (change/blur/focus/load): `history=false`, `scroll=false`
+- Modes `append`/`prepend`/`before`/`after`/`remove`/`none`: `history=false`, `scroll=false`
+- Patch mode: `history=false`, `scroll=false` (override with `mu-patch-history="true"`)
+- Redirections always add the URL to browser history
+- `mu-history="false"` on links/forms, or `history: false` in config
 
 ## HTTP methods (mu-method)
 
 - `mu-method` attribute sets the HTTP method: `get`, `post`, `put`, `patch`, `delete`, `sse`
 - If absent on a link/button: defaults to `get`
 - If absent on a form: uses the form's `method` attribute (default `get`)
-- `mu-post` is deprecated, mapped to `mu-method="post"` for backward compatibility
 - Non-GET methods send `X-Mu-Method` header
 - For forms, non-GET methods send FormData as body (same as POST)
 - For non-form elements (buttons, divs), non-GET methods send an empty body
@@ -144,6 +149,7 @@ Ghost = no history entry + no scroll to top.
 ## Prefetch
 
 - **Enabled by default** (`prefetch: true`)
+- **GET only**: elements with `mu-method` other than `get` are never prefetched
 - Triggered on `mouseover` (event delegation)
 - One entry per URL in `_prefetchCache` (Map)
 - Cache is consumed and deleted on click (no persistent cache)
@@ -163,6 +169,10 @@ Ghost = no history entry + no scroll to top.
 - Styled inline (no external CSS needed), customizable via CSS
 - Animates to 70% during fetch, 100% on completion, then resets
 - Disablable: `progress: false` in config
+
+## Versioning
+
+Even minor version numbers (1.2, 1.4, 1.6…) indicate stable releases. Odd minor versions (1.3, 1.5…) are reserved for development/unstable.
 
 ## Build
 
@@ -185,7 +195,7 @@ beyond click/submit. Supports debounce and polling.
 
 | Attribute | Values | Description |
 |---|---|---|
-| `mu-method` | `get`, `post`, `put`, `patch`, `delete`, `sse` | HTTP method (replaces `mu-post`) |
+| `mu-method` | `get`, `post`, `put`, `patch`, `delete`, `sse` | HTTP method |
 | `mu-trigger` | `click`, `submit`, `change`, `blur`, `focus`, `load` | Event trigger |
 | `mu-repeat` | number (ms) | Polling interval |
 | `mu-debounce` | number (ms) | Debounce delay |
@@ -225,8 +235,7 @@ beyond click/submit. Supports debounce and polling.
   attached by `_initTriggers()`, called after each render
 - Elements marked with `_mu_bound = true` to prevent duplicate binding
 - Polling via `setInterval`, stored as `el._mu_interval`, cleaned up by `_cleanupTriggers`
-- Non-click/submit triggers default to ghost mode (no history entry)
-- `mu-post` is deprecated but still supported (mapped to `mu-method="post"`)
+- Non-click/submit triggers default to history=false, scroll=false
 
 ## Server-Sent Events (SSE)
 
