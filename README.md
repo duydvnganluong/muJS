@@ -450,7 +450,7 @@ When the user navigates with the browser's back/forward buttons, µJS automatica
 
 ## Prefetch
 
-When enabled (default), µJS fetches the target page when the user hovers over a link, before they click. This saves ~100-300ms of perceived loading time.
+When enabled (default), µJS fetches the target page when the user hovers over a link, before they click. A 50ms delay filters accidental hover-throughs (mouse passing over a link without intent to click). This saves ~100-300ms of perceived loading time.
 
 The prefetch cache stores one entry per URL and is consumed on click. Prefetch only applies to GET requests — elements with `mu-method="post"`, `put`, `patch`, `delete` or `sse` are never prefetched.
 

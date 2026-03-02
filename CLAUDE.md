@@ -150,7 +150,7 @@ Defaults depend on mode and context:
 
 - **Enabled by default** (`prefetch: true`)
 - **GET only**: elements with `mu-method` other than `get` are never prefetched
-- Triggered on `mouseover` (event delegation)
+- Triggered on `mouseover` (event delegation), with 50ms delay to filter accidental hover-throughs
 - One entry per URL in `_prefetchCache` (Map)
 - Cache is consumed and deleted on click (no persistent cache)
 - Low-priority fetch (`priority: "low"`)
