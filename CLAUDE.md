@@ -113,6 +113,13 @@ DOM morphing (preserving focus, scroll, video state during replace/update) is:
 - Falls back silently on unsupported browsers
 - Disablable: `transition: false` in config or `mu-transition="false"` per-element
 
+## Scripts
+
+- `<head>` scripts: merged additively by `_mergeHead()`. Already-present scripts (matched by `_elKey`) are not re-added. New scripts are added and executed once.
+- `<body>` scripts: re-executed by `_runScripts()` on each navigation. External scripts (with `src`) are tracked in `_jsIncludes` and loaded only once. Inline scripts are re-executed every time.
+- `mu-disabled` on a `<script>` tag prevents `_runScripts` from re-executing it
+- Third-party analytics (Plausible, GA) in `<head>` are never re-executed — they detect SPA navigations via their own `pushState` interception
+
 ## Forms
 
 - HTML5 validation via `reportValidity()` before any fetch

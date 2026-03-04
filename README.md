@@ -33,6 +33,7 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 - [Prefetch](#prefetch)
 - [DOM morphing](#dom-morphing)
 - [View Transitions](#view-transitions)
+- [Scripts](#scripts)
 - [Progress bar](#progress-bar)
 - [Events](#events)
 - [Attributes reference](#attributes-reference)
@@ -512,6 +513,33 @@ Enabled by default. Falls back silently on unsupported browsers.
 ```
 
 
+## Scripts
+
+When µJS loads a page, scripts are handled differently depending on their location:
+
+- **`<head>` scripts** are merged additively. If a script (identified by its `src` or content) is already present in the current `<head>`, it is not re-added or re-executed. New scripts found in the fetched page's `<head>` are added and executed once.
+- **`<body>` scripts** found in the injected content are re-executed on each navigation. External scripts (with `src`) are loaded only once — subsequent navigations skip them. Inline scripts are re-executed every time.
+
+This means third-party scripts loaded in the `<head>` (analytics, tracking, widgets) are **not** re-executed by µJS. For example, a Plausible or Google Analytics script in the `<head>` will detect SPA navigations on its own via `pushState` interception — no special configuration is needed.
+
+To prevent a `<body>` inline script from being re-executed on navigation, add `mu-disabled`:
+
+```html
+<script mu-disabled>
+    // This script runs only on the initial page load
+    oneTimeSetup();
+</script>
+```
+
+For code that should run after every µJS navigation, use the `mu:after-render` event instead of inline scripts:
+
+```javascript
+document.addEventListener("mu:after-render", function(e) {
+    myApp.initWidgets();
+});
+```
+
+
 ## Progress bar
 
 A thin progress bar (3px, blue) is displayed at the top of the page during fetch requests. It requires no external stylesheet.
@@ -668,17 +696,32 @@ mu.setMorph(function(target, html, opts) {
 
 ## Browser support
 
-µJS works in all modern browsers:
+µJS works in all modern browsers. The minimum versions are determined by `AbortController` (used for request cancellation).
 
-- Chrome / Edge 89+
-- Firefox 87+
-- Safari 15+
+**Desktop:**
+
+| Browser | Version | Release date |
+|---|---|---|
+| Chrome | 66+ | April 2018 |
+| Edge | 79+ | January 2020 |
+| Firefox | 57+ | November 2017 |
+| Safari | 12.1+ | March 2019 |
+| Opera | 53+ | May 2018 |
+
+**Mobile:**
+
+| Browser | Version | Release date |
+|---|---|---|
+| Chrome Android | 66+ | April 2018 |
+| Safari iOS | 11.3+ | March 2018 |
+| Firefox Android | 57+ | November 2017 |
+| Opera Mobile | 47+ | May 2018 |
 
 View Transitions require Chrome/Edge 111+. On unsupported browsers, transitions are skipped silently.
 
 DOM morphing requires a separate library (idiomorph recommended). Without it, µJS falls back to direct DOM replacement.
 
-µJS does **not** support Internet Explorer.
+µJS does **not** support Internet Explorer or legacy Edge (EdgeHTML).
 
 
 ## License
