@@ -101,8 +101,14 @@ After calling `mu.init()`, all internal links (URLs starting with `/`) are autom
     <!-- This link is NOT handled (external URL) -->
     <a href="https://example.com">External link</a>
 
+    <!-- This link is NOT handled (has target attribute) -->
+    <a href="/page" target="_blank">Opens in new tab</a>
+
+    <!-- This link is NOT handled (has download attribute) -->
+    <a href="/file.pdf" download>Download PDF</a>
+
     <!-- This link is NOT handled (explicitly disabled) -->
-    <a href="/file.pdf" mu-disabled>Download PDF</a>
+    <a href="/page" mu-disabled>Disabled link</a>
 
     <script src="/path/to/mu.min.js"></script>
     <script>mu.init();</script>

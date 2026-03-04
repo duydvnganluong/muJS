@@ -48,6 +48,18 @@ These conventions come from the original Vik codebase and MUST be followed stric
 ### Event delegation
 µJS uses a single `click` listener and a single `submit` listener on `document` for click/submit triggers. No per-element binding for those, no re-binding after page load. For other triggers (`change`, `blur`, `focus`, `load`), per-element listeners are attached by `_initTriggers()` after each render. This replaces Vik's approach of iterating over all links/forms and adding `onclick`/`onsubmit` attributes, then re-running `init()` after each page load.
 
+### Link filtering (`_shouldProcess`)
+µJS skips elements that should not be intercepted. `_shouldProcess()` returns false for:
+- `mu-disabled` or `data-mu-disabled` attribute present
+- `mu="false"` or `data-mu="false"` attribute
+- `target` attribute present (e.g. `target="_blank"`)
+- `download` attribute present (file downloads)
+- `<a>` with `onclick` attribute
+- `<form>` with `onsubmit` attribute
+- External URLs (not starting with `/`, or starting with `//`)
+
+Modifier keys (ctrl, meta, shift, alt) on click are also ignored, allowing native browser behavior (open in new tab, etc.).
+
 ### Attributes: mu-* with data-mu-* fallback
 All HTML attributes use the `mu-` prefix (e.g. `mu-mode`, `mu-target`). The `data-mu-` variant is also supported for W3C validation. The helper function `_attr(el, name)` checks both.
 
