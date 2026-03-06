@@ -9,7 +9,7 @@ No build step required. No dependencies. No framework. Just a single `<script>` 
 Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turbo.hotwired.dev/) and [HTMX](https://htmx.org/), µJS aims to be simpler and lighter while covering the most common use cases.
 
 - 🚀 **Fast** — Prefetch on hover, no full page reload, progress bar
-- 🪶 **Lightweight** — Single file, ~10 KB gzipped, zero dependencies
+- 🪶 **Lightweight** — Single file, ~5 KB gzipped, zero dependencies
 - 🔌 **Drop-in** — Works with any backend (PHP, Python, Ruby, Go…), no server-side changes needed
 - 🧩 **Patch mode** — Update multiple page fragments in a single request
 - 🎯 **Triggers** — Any element, any event: live search, polling, focus actions
