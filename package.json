@@ -1,6 +1,6 @@
 {
 	"name": "@digicreon/mujs",
-	"version": "1.4.2",
+	"version": "1.4.3",
 	"description": "Lightweight AJAX navigation library",
 	"main": "dist/mu.min.js",
 	"files": [
