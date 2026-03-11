@@ -69,6 +69,22 @@ Place the scripts at the end of `<body>`, after all your HTML content. This ensu
 <script>mu.init();</script>
 ```
 
+With [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) (SRI):
+
+```html
+<!-- unpkg -->
+<script src="https://unpkg.com/@digicreon/mujs/dist/mu.min.js"
+        integrity="sha384-HOmrsf1xbQSkv1hsu7+gOO5LVzWpEJif8c/3sbuupYBt9DTk+PD5cn9khN324tvv"
+        crossorigin="anonymous"></script>
+
+<!-- jsDelivr -->
+<script src="https://cdn.jsdelivr.net/npm/@digicreon/mujs/dist/mu.min.js"
+        integrity="sha384-HOmrsf1xbQSkv1hsu7+gOO5LVzWpEJif8c/3sbuupYBt9DTk+PD5cn9khN324tvv"
+        crossorigin="anonymous"></script>
+
+<script>mu.init();</script>
+```
+
 ### Via npm
 
 ```bash
@@ -216,7 +232,7 @@ Data is serialized as a query string. Behaves like a link.
 
 ### POST forms
 
-Data is sent as `FormData`. History is disabled by default (POST responses should not be replayed via the browser back button).
+Data is sent as `application/x-www-form-urlencoded` by default. Add `enctype="multipart/form-data"` for file uploads. History is disabled by default (POST responses should not be replayed via the browser back button).
 
 ```html
 <form action="/comment/create" method="post">
@@ -227,7 +243,7 @@ Data is sent as `FormData`. History is disabled by default (POST responses shoul
 
 ### PUT / PATCH / DELETE forms
 
-Use `mu-method` to override the HTTP method. The form data is sent as `FormData`, like POST.
+Use `mu-method` to override the HTTP method. The form data is sent like POST (`application/x-www-form-urlencoded` by default).
 
 ```html
 <!-- PUT form -->

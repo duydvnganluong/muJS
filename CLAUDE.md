@@ -137,7 +137,7 @@ DOM morphing (preserving focus, scroll, video state during replace/update) is:
 - HTML5 validation via `reportValidity()` before any fetch
 - Optional custom validation via `mu-validate="functionName"`
 - GET forms: data serialized as query string, behaves like a link
-- Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `FormData`, history disabled by default
+- Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `URLSearchParams` (`application/x-www-form-urlencoded`) by default, or `FormData` (`multipart/form-data`) if the form has `enctype="multipart/form-data"`. History disabled by default
 - `mu-method` attribute overrides the form's `method` attribute (supports `put`, `patch`, `delete`)
 - Quit-page confirmation via `mu-confirm-quit` attribute on `<form>` (uses `input` event delegation)
 
@@ -177,7 +177,7 @@ Defaults depend on mode and context:
 
 ## HTTP headers sent by µJS
 
-- `X-Requested-With: mujs` — identifies AJAX requests (server can return different content)
+- `X-Requested-With: XMLHttpRequest` — identifies AJAX requests (de facto standard, compatible with Rails, Laravel, Django, etc.)
 - `X-Mu-Mode: <mode>` — current injection mode
 - `X-Mu-Method: <METHOD>` — HTTP method, sent for non-GET requests (POST, PUT, PATCH, DELETE)
 - `X-Mu-Prefetch: 1` — sent on prefetch requests (server can return lighter content)
@@ -197,6 +197,7 @@ Even minor version numbers (1.2, 1.4, 1.6…) indicate stable releases. Odd mino
 
 - `make` or `make dist` — minify with terser
 - `make size` — show file sizes (source, minified, gzipped)
+- `make hash` — compute SRI hash (sha384) of dist/mu.min.js
 - `make check` — dry-run npm pack
 - `make publish` — minify + npm publish
 - `make clean` — remove dist/
@@ -275,9 +276,9 @@ Incoming messages are parsed as HTML and rendered via `_renderPatch` or `_render
 
 ## TODO / future improvements
 
-- [ ] Publish to npm
-- [ ] Create mujs.org website
-- [ ] Document how to install and use idiomorph with µJS (CDN, npm, local file) on mujs.org
+- [x] ~~Publish to npm~~ — published as `@digicreon/mujs`
+- [x] ~~Create mujs.org website~~ — live at https://mujs.org
+- [x] ~~Document how to install and use idiomorph with µJS (CDN, npm, local file) on mujs.org~~ − live at https://mujs.org
 - [x] ~~`mu-trigger` attribute~~ — implemented in v1.2
 - [x] ~~SSE integration for server-pushed patches~~ — implemented in v1.2
 - [ ] Consider: `mu-indicator` attribute (see details below)

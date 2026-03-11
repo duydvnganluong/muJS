@@ -5,7 +5,7 @@ SRC     = lib/mu.js
 DIST    = dist/mu.min.js
 TERSER  = npx terser
 
-.PHONY: doc all clean dist publish size check
+.PHONY: doc all clean dist publish size check hash
 
 # Default target: documentation
 doc:
@@ -47,4 +47,8 @@ publish: dist
 # Clean generated files
 clean:
 	rm -rf dist
+
+# Compute the SHA384 hash
+hash: dist
+	@echo "sha384-$$(cat dist/mu.min.js | openssl dgst -sha384 -binary | openssl base64 -A)"
 
