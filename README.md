@@ -688,6 +688,7 @@ mu.init({
 | `urlPrefix` | string\|null | `null` | Prefix added to fetched URLs. |
 | `progress` | bool | `true` | Show progress bar during fetch. |
 | `prefetch` | bool | `true` | Prefetch pages on link hover. |
+| `prefetchTtl` | number | `3000` | Prefetch cache TTL in milliseconds. |
 | `morph` | bool | `true` | Enable DOM morphing (requires idiomorph or custom morph function). |
 | `transition` | bool | `true` | Enable View Transitions API. |
 | `confirmQuitText` | string | `"Are you sure you want to leave this page?"` | Quit-page confirmation message. |
