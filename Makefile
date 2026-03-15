@@ -16,6 +16,7 @@ doc:
 	@echo "  make check     $$(tput dim)Check what npm would publish$$(tput sgr0)."
 	@echo "  make publish   $$(tput dim)Publish to NPM (builds first)$$(tput sgr0)."
 	@echo "  make clean     $$(tput dim)Clean generated files.$$(tput sgr0)"
+	@echo "  make hash      $$(tput dim)Compute SRI hash.$$(tput sgr0)"
 
 # Build minified version
 all: dist
