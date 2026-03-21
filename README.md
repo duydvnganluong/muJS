@@ -94,7 +94,9 @@ npm install @digicreon/mujs
 
 ## Quick start
 
-After calling `mu.init()`, all internal links (URLs starting with `/`) are automatically intercepted. Clicking a link fetches the page via AJAX and replaces the current `<body>` with the fetched `<body>`. The page title is updated automatically. Browser history (back/forward buttons) works as expected.
+After calling `mu.init()`, all same-origin links are automatically intercepted. Clicking a link fetches the page via AJAX and replaces the current `<body>` with the fetched `<body>`. The page title is updated automatically. Browser history (back/forward buttons) works as expected.
+
+µJS handles absolute paths (`/about`), relative URLs (`about`, `../about`), and absolute same-origin URLs (`https://yoursite.com/about`). If your site uses a `<base>` tag, relative URLs are resolved accordingly. Note that only the `<base>` tag from the initially loaded page is used; `<base>` tags in dynamically fetched pages are not applied.
 
 ```html
 <!DOCTYPE html>
