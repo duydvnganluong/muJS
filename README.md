@@ -1,3 +1,7 @@
+<p align="center"><a href="https://mujs.org/" target="_blank">
+	<img src="https://static.digicreon.com/main/mujs/favicon-128x128.png" alt="µJS logo">
+</a></p>
+
 # µJS (muJS)
 
 **Lightweight AJAX navigation library — accelerate your website without a JS framework.**
@@ -26,6 +30,7 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 - [Patch mode](#patch-mode)
 - [Forms](#forms)
 - [HTTP methods](#http-methods)
+- [HTTP headers](#http-headers)
 - [Triggers](#triggers)
 - [Server-Sent Events (SSE)](#server-sent-events-sse)
 - [History & Scroll](#history--scroll)
@@ -323,7 +328,18 @@ Supported values: `get`, `post`, `put`, `patch`, `delete`, `sse`.
 <a href="/api/publish/5" mu-method="put" mu-mode="none">Publish</a>
 ```
 
-Non-GET requests send an `X-Mu-Method` header with the HTTP method, allowing the server to distinguish between standard and µJS-initiated requests.
+## HTTP headers
+
+µJS sends the following HTTP headers with each request:
+
+| Header | Value | Sent when |
+|---|---|---|
+| `X-Requested-With` | `XMLHttpRequest` | Always |
+| `X-Mu-Mode` | Current injection mode | Always |
+| `X-Mu-Method` | HTTP method (`POST`, `PUT`, `PATCH`, `DELETE`) | Non-GET requests only |
+| `X-Mu-Prefetch` | `1` | Prefetch requests only |
+
+These headers allow the server to detect µJS requests and adapt its response (e.g. return a fragment instead of a full page, skip analytics, return lighter content on prefetch).
 
 
 ## Triggers
