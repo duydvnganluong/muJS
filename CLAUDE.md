@@ -48,6 +48,9 @@ These conventions come from the original Vik codebase and MUST be followed stric
 ### Event delegation
 µJS uses a single `click` listener and a single `submit` listener on `document` for click/submit triggers. No per-element binding for those, no re-binding after page load. For other triggers (`change`, `blur`, `focus`, `load`), per-element listeners are attached by `_initTriggers()` after each render. This replaces Vik's approach of iterating over all links/forms and adding `onclick`/`onsubmit` attributes, then re-running `init()` after each page load.
 
+### URL resolution (`_resolveUrl`)
+`_resolveUrl(url)` resolves any URL to a local path using `new URL(url, document.baseURI)`. Returns the pathname+search+hash for same-origin URLs, or `null` for external/invalid/hash-only URLs. Uses `document.baseURI` (not `window.location.href`) so that the `<base>` tag is respected when present. Note: only the `<base>` tag from the initially loaded page is used; `<base>` tags in dynamically fetched pages are not applied.
+
 ### Link filtering (`_shouldProcess`)
 µJS skips elements that should not be intercepted. `_shouldProcess()` returns false for:
 - `mu-disabled` or `data-mu-disabled` attribute present
@@ -56,7 +59,7 @@ These conventions come from the original Vik codebase and MUST be followed stric
 - `download` attribute present (file downloads)
 - `<a>` with `onclick` attribute
 - `<form>` with `onsubmit` attribute
-- External URLs (not starting with `/`, or starting with `//`)
+- External URLs (resolved via `_resolveUrl`)
 
 Modifier keys (ctrl, meta, shift, alt) on click are also ignored, allowing native browser behavior (open in new tab, etc.).
 
@@ -139,6 +142,7 @@ DOM morphing (preserving focus, scroll, video state during replace/update) is:
 - GET forms: data serialized as query string, behaves like a link
 - Non-GET forms (POST, PUT, PATCH, DELETE): data sent as `URLSearchParams` (`application/x-www-form-urlencoded`) by default, or `FormData` (`multipart/form-data`) if the form has `enctype="multipart/form-data"`. History disabled by default
 - `mu-method` attribute overrides the form's `method` attribute (supports `put`, `patch`, `delete`)
+- Submit button name/value: included in form data via `e.submitter` (modern browsers) with fallback to `mu._submitter` (tracked via click event delegation) for older browsers
 - Quit-page confirmation via `mu-confirm-quit` attribute on `<form>` (uses `input` event delegation)
 
 ## History & Scroll

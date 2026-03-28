@@ -224,7 +224,7 @@ By default, patch mode does not modify browser history. To add the URL to histor
 
 ## Forms
 
-µJS intercepts form submissions. HTML5 validation (`reportValidity()`) is checked before any request.
+µJS intercepts form submissions. HTML5 validation (`reportValidity()`) is checked before any request. When a form has multiple submit buttons with different `name`/`value` attributes, µJS includes the clicked button's data in the submission.
 
 ### GET forms
 
