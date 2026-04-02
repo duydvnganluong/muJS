@@ -78,13 +78,13 @@ With [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Securi
 
 ```html
 <!-- unpkg -->
-<script src="https://unpkg.com/@digicreon/mujs@1.4.6/dist/mu.min.js"
-        integrity="sha384-UXZKHWanp8dk3pHEzNar75NXeWg/i+jYD+y+vddCp9PPLIReUy0NyMhleOQSu75Z"
+<script src="https://unpkg.com/@digicreon/mujs@1.4.7/dist/mu.min.js"
+        integrity="sha384-w6y4RonRzoBmR8nPBQHBbHSic1J3YDINq8WHf07ohPCZU9TWKZQaUipE0WXhUQGt"
         crossorigin="anonymous"></script>
 
 <!-- jsDelivr -->
-<script src="https://cdn.jsdelivr.net/npm/@digicreon/mujs@1.4.6/dist/mu.min.js"
-        integrity="sha384-UXZKHWanp8dk3pHEzNar75NXeWg/i+jYD+y+vddCp9PPLIReUy0NyMhleOQSu75Z"
+<script src="https://cdn.jsdelivr.net/npm/@digicreon/mujs@1.4.7/dist/mu.min.js"
+        integrity="sha384-w6y4RonRzoBmR8nPBQHBbHSic1J3YDINq8WHf07ohPCZU9TWKZQaUipE0WXhUQGt"
         crossorigin="anonymous"></script>
 
 <script>mu.init();</script>
