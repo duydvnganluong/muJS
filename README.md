@@ -8,6 +8,8 @@
 
 µJS intercepts clicks on links and form submissions to load pages via AJAX instead of full browser navigation. The fetched content replaces part (or all) of the current page, making navigation faster and smoother.
 
+Built on the modern [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) (no XMLHttpRequest), with native `AbortController` for clean request cancellation.
+
 No build step required. No dependencies. No framework. Just a single `<script>` tag.
 
 Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turbo.hotwired.dev/) and [HTMX](https://htmx.org/), µJS aims to be simpler and lighter while covering the most common use cases.
@@ -19,7 +21,8 @@ Inspired by [pjax](https://github.com/defunkt/jquery-pjax), [Turbo](https://turb
 - 🎯 **Triggers** — Any element, any event: live search, polling, focus actions
 - 🔄 **HTTP verbs** — GET, POST, PUT, PATCH, DELETE on links, buttons, and forms
 - 📡 **SSE** — Real-time updates via Server-Sent Events
-- ✨ **Modern** — View Transitions, DOM morphing (via idiomorph), `fetch` API, event delegation
+- 🌐 **Modern Fetch API** — Native `fetch()` with `AbortController` (no XMLHttpRequest)
+- ✨ **Modern UX** — View Transitions, DOM morphing (via idiomorph), event delegation
 
 
 ## Table of contents
